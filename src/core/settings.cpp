@@ -888,22 +888,13 @@ void setClock() {
 void runClockLoop() {
     int tmp = 0;
 #if defined(HAS_RTC)
-    RTC_TimeTypeDef alarm;
-    alarm.Hours = 13;
-    alarm.Minutes = 05;
-    alarm.Seconds = 0;
-    RTC_TimeTypeDef previous_time;
     _rtc.GetBm8563Time();
     _rtc.GetTime(&_time);
     Serial.println("RTC: Yes");
 #else
     Serial.println("RTC: No");
-    tm alarm;
-    alarm.tm_hour = 14;
-    alarm.tm_min = 05;
-    alarm.tm_sec = 0;
-    tm time;
 #endif
+    tm time;
 
     // Delay due to SelPress() detected on run
     tft.fillScreen(bruceConfig.bgColor);
@@ -946,16 +937,21 @@ void runClockLoop() {
                 _time.Minutes % 100,
                 _time.Seconds % 100
             );
-            if (alarm.Hours == _time.Hours % 100 && alarm.Minutes == _time.Hours % 100) {
-                Serial.println("Alarm!!");
-            }
-            previous_time = _time;
             tft.drawCentreString(timeString, tftWidth / 2, tftHeight / 2 - 13, 1);
+            for (const auto &alarm : bruceConfig.alarms) {
+                if (alarm.hour == _time.Hours % 100 && alarm.minute == _time.Minutes % 100 &&
+                    _time.Seconds % 100 == 0) {
+                    Serial.println("Alarm!!");
+                    _tone(500, 2000);
+                }
+            }
 #else
             tft.drawCentreString(timeStr, tftWidth / 2, tftHeight / 2 - 13, 1);
-            if (alarm.tm_hour == time.tm_hour && alarm.tm_min == time.tm_min && alarm.tm_sec == time.tm_sec) {
-                Serial.println("Alarm!!");
-                _tone(500, 5000);
+            for (const auto &alarm : bruceConfig.alarms) {
+                if (alarm.hour == time.tm_hour && alarm.minute == time.tm_min && time.tm_sec == 0) {
+                    Serial.println("Alarm!!");
+                    _tone(500, 2000);
+                }
             }
 #endif
             tmp = millis();
