@@ -94,8 +94,57 @@ uint32_t clockCallback(cmd *c) {
     return true;
 }
 
+uint32_t alarmsCallback(cmd *c) {
+    char alarmMsg[25];
+    for (const auto &alarm : bruceConfig.alarms) {
+        snprintf(alarmMsg, sizeof(alarmMsg), "Alarm- %02d:%02d", alarm.hour, alarm.minute);
+        serialDevice->println(alarmMsg);
+    }
+    return true;
+}
+
+uint32_t addAlarmCallback(cmd *c) {
+    char alarmMsg[25];
+    Command cmd(c);
+    Argument hourArg = cmd.getArgument("hour");
+    Argument minuteArg = cmd.getArgument("minute");
+    String strHour = hourArg.getValue();
+    String strMinute = minuteArg.getValue();
+    strHour.trim();
+    strMinute.trim();
+    bruceConfig.addAlarmEntry(atoi(strHour.c_str()), atoi(strMinute.c_str()));
+    snprintf(
+        alarmMsg, sizeof(alarmMsg), "Added Alarm- %02d:%02d", atoi(strHour.c_str()), atoi(strMinute.c_str())
+    );
+    serialDevice->println(alarmMsg);
+    return true;
+}
+
+uint32_t removeAlarmCallback(cmd *c) {
+    char alarmMsg[25];
+    Command cmd(c);
+    Argument hourArg = cmd.getArgument("hour");
+    Argument minuteArg = cmd.getArgument("minute");
+    String strHour = hourArg.getValue();
+    String strMinute = minuteArg.getValue();
+    strHour.trim();
+    strMinute.trim();
+    snprintf(
+        alarmMsg, sizeof(alarmMsg), "Removed Alarm- %02d:%02d", atoi(strHour.c_str()), atoi(strMinute.c_str())
+    );
+    serialDevice->println(alarmMsg);
+    return true;
+}
+
 void createScreenCommands(SimpleCLI *cli) {
     Command clockCmd = cli->addCommand("clock", clockCallback);
+    Command alarmsCmd = cli->addCommand("alarms", alarmsCallback);
+    Command addAlarmCmd = cli->addCommand("alarmAdd", addAlarmCallback);
+    addAlarmCmd.addPosArg("hour");
+    addAlarmCmd.addPosArg("minute");
+    Command removeAlarmCmd = cli->addCommand("alarmRemove", removeAlarmCallback);
+    removeAlarmCmd.addPosArg("hour");
+    removeAlarmCmd.addPosArg("minute");
 
     Command screenCmd = cli->addCompositeCmd("screen");
 
