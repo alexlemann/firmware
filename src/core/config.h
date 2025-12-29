@@ -25,6 +25,10 @@ public:
         String menuName;
         String content;
     };
+    struct AlarmEntry {
+        int hour;
+        int minute;
+    };
     struct EvilPortalEndpoints {
         String getCredsEndpoint;
         String setSsidEndpoint;
@@ -90,6 +94,7 @@ public:
         {"Bruce Site", "https://bruce.computer"            },
         {"Rickroll",   "https://youtu.be/dQw4w9WgXcQ"      }
     };
+    std::vector<AlarmEntry> alarms = {};
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -145,6 +150,8 @@ public:
     void addWifiCredential(const String &ssid, const String &pwd);
     void addQrCodeEntry(const String &menuName, const String &content);
     void removeQrCodeEntry(const String &menuName);
+    void addAlarmEntry(const int hour, const int minute);
+    void removeAlarmEntry(const int hour, const int minute);
     String getWifiPassword(const String &ssid) const;
     void addEvilWifiName(String value);
     void removeEvilWifiName(String value);

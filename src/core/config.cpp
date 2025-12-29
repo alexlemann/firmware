@@ -74,6 +74,12 @@ JsonDocument BruceConfig::toJson() const {
         qrEntry["menuName"] = entry.menuName;
         qrEntry["content"] = entry.content;
     }
+    JsonArray alarmsArray = setting["alarms"].to<JsonArray>();
+    for (const auto &entry : alarms) {
+        JsonObject alarmEntry = alarmsArray.add<JsonObject>();
+        alarmEntry["hour"] = entry.hour;
+        alarmEntry["minute"] = entry.minute;
+    }
 
     return jsonDoc;
 }
@@ -375,6 +381,19 @@ void BruceConfig::fromFile(bool checkFS) {
     } else {
         count++;
         log_e("Fail to load qrCodes");
+    }
+
+    if (!setting["alarms"].isNull()) {
+        alarms.clear();
+        JsonArray alarmsArray = setting["alarms"].as<JsonArray>();
+        for (JsonObject alarmEntry : alarmsArray) {
+            int hour = alarmEntry["hour"].as<int>();
+            int minute = alarmEntry["minute"].as<int>();
+            alarms.push_back({hour, minute});
+        }
+    } else {
+        count++;
+        log_e("Fail to load alarms");
     }
 
     validateConfig();
@@ -747,6 +766,27 @@ void BruceConfig::removeQrCodeEntry(const String &menuName) {
     }
 
     if (writeIndex < qrCodes.size()) { qrCodes.erase(qrCodes.begin() + writeIndex, qrCodes.end()); }
+
+    saveFile();
+}
+
+void BruceConfig::addAlarmEntry(const int hour, const int minute) {
+    AlarmEntry new_alarm = {hour, minute};
+    alarms.push_back(new_alarm);
+    saveFile();
+}
+
+void BruceConfig::removeAlarmEntry(const int hour, const int minute) {
+    alarms.erase(
+        std::remove_if(
+            alarms.begin(),
+            alarms.end(),
+            [&](AlarmEntry const &check_alarm) {
+                return check_alarm.hour == hour && check_alarm.minute == minute;
+            }
+        ),
+        alarms.end()
+    );
 
     saveFile();
 }
