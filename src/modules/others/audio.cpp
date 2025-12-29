@@ -220,10 +220,10 @@ void playTone(unsigned int frequency, unsigned long duration, short waveType) {
 void _tone(unsigned int frequency, unsigned long duration) {
     if (!bruceConfig.soundEnabled) return;
 
-#if defined(BUZZ_PIN)
-    tone(BUZZ_PIN, frequency, duration);
-#elif defined(HAS_NS4168_SPKR)
+#if defined(HAS_NS4168_SPKR)
     //  alt. implementation using the speaker
     playTone(frequency, duration, 0);
+#elif defined(BUZZ_PIN)
+    tone(BUZZ_PIN, frequency, duration);
 #endif
 }
