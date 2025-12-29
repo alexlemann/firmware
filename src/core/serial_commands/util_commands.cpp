@@ -107,7 +107,7 @@ uint32_t infoCallback(cmd *c) {
     serialDevice->print("Bruce v");
     serialDevice->println(BRUCE_VERSION);
     serialDevice->println(GIT_COMMIT_HASH);
-    serialDevice->print("SDK: ");              
+    serialDevice->print("SDK: ");
     serialDevice->println(ESP.getSdkVersion());
     serialDevice->println("MAC addr: " + String(WiFi.macAddress()));
     // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/ChipID/GetChipID/GetChipID.ino
@@ -180,6 +180,11 @@ uint32_t helpCallback(cmd *c) {
     serialDevice->println("  music_player <audio file path>  - Play an audio file.");
     serialDevice->println("  tone <frequency> <duration>  - Play a single squarewave audio tone.");
     serialDevice->println("  say <text>   - Text-To-Speech (speaker required).");
+
+    serialDevice->println("\nClock Commands:");
+    serialDevice->println("  alarms  - List existing alarms.");
+    serialDevice->println("  alarmAdd <hour> <minute> - Adds alarm to config and saves.");
+    serialDevice->println("  removeAlarm <hour> <minute> - Removes an alarm from config and saves.");
 
     serialDevice->println("\nUI Commands:");
     serialDevice->println("  led <r/g/b> <0-255>    - Change the UI main color.");
