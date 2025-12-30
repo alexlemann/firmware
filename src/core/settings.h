@@ -16,6 +16,14 @@ int gsetRotation(bool set = false);
 
 void setBrightnessMenu();
 
+void getTime(RTC_TimeTypeDef *time);
+
+void addAlarm();
+
+void removeAlarmMenu(int hour, int minute);
+
+void setAlarmsMenu();
+
 void setUIColor();
 
 bool setCustomUIColorMenu();

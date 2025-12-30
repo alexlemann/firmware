@@ -52,6 +52,7 @@ void ConfigMenu::optionsMenu() {
         {"Network Creds", setNetworkCredsMenu},
         {"BadUSB/BLE", setBadUSBBLEMenu},
         {"Clock", setClock},
+        {"Alarms", setAlarmsMenu},
         {"Sleep", setSleepMode},
         {"Factory Reset", [=]() { bruceConfig.factoryReset(); }},
         {"Restart", [=]() { ESP.restart(); }},

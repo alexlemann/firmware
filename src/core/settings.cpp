@@ -15,6 +15,59 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
 
+void getTime(RTC_TimeTypeDef *time) {
+    options = {};
+    for (int i = 0; i < 12; i++) {
+        String tmp = String(i < 10 ? "0" : "") + String(i);
+        options.push_back({tmp.c_str(), [&]() { delay(1); }});
+    }
+
+    time->Hours = loopOptions(options, MENU_TYPE_SUBMENU, "Hour");
+    options.clear();
+
+    for (int i = 0; i < 60; i++) {
+        String tmp = String(i < 10 ? "0" : "") + String(i);
+        options.push_back({tmp.c_str(), [&]() { delay(1); }});
+    }
+
+    time->Minutes = loopOptions(options, MENU_TYPE_SUBMENU, "Minute");
+    options.clear();
+
+    options = {
+        {"AM", [&]() {}                    },
+        {"PM", [&]() { time->Hours += 12; }},
+    };
+
+    loopOptions(options);
+}
+
+void addAlarm() {
+    RTC_TimeTypeDef time;
+    getTime(&time);
+    bruceConfig.addAlarmEntry(time.Hours, time.Minutes);
+}
+
+void removeAlarmMenu(int hour, int minute) {
+    options = {
+        {"Remove?", [=]() { bruceConfig.removeAlarmEntry(hour, minute); }}
+    };
+    addOptionToMainMenu();
+    loopOptions(options, MENU_TYPE_SUBMENU);
+}
+
+void setAlarmsMenu() {
+    options.clear();
+    options.push_back({"Add Alarm", [=]() { addAlarm(); }});
+    for (const auto &alarm : bruceConfig.alarms) {
+        char label[6];
+        snprintf(label, sizeof(label), "%02d:%02d", alarm.hour, alarm.minute);
+        Option o = {label, [=]() { removeAlarmMenu(alarm.hour, alarm.minute); }};
+        options.push_back(o);
+    }
+    addOptionToMainMenu();
+    loopOptions(options, MENU_TYPE_SUBMENU);
+}
+
 int currentScreenBrightness = -1;
 
 // This function comes from interface.h
@@ -746,8 +799,8 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 void setClock() {
     bool auto_mode = true;
 
-#if defined(HAS_RTC)
     RTC_TimeTypeDef TimeStruct;
+#if defined(HAS_RTC)
     _rtc.GetBm8563Time();
 #endif
 
@@ -847,38 +900,13 @@ void setClock() {
         clock_set = true;
         runClockLoop();
     } else {
-        int hr, mn, am;
-        options = {};
-        for (int i = 0; i < 12; i++) {
-            String tmp = String(i < 10 ? "0" : "") + String(i);
-            options.push_back({tmp.c_str(), [&]() { delay(1); }});
-        }
-
-        hr = loopOptions(options, MENU_TYPE_SUBMENU, "Set Hour");
-        options.clear();
-
-        for (int i = 0; i < 60; i++) {
-            String tmp = String(i < 10 ? "0" : "") + String(i);
-            options.push_back({tmp.c_str(), [&]() { delay(1); }});
-        }
-
-        mn = loopOptions(options, MENU_TYPE_SUBMENU, "Set Minute");
-        options.clear();
-
-        options = {
-            {"AM", [&]() { am = 0; } },
-            {"PM", [&]() { am = 12; }},
-        };
-
-        loopOptions(options);
+        getTime(&TimeStruct);
 
 #if defined(HAS_RTC)
-        TimeStruct.Hours = hr + am;
-        TimeStruct.Minutes = mn;
         TimeStruct.Seconds = 0;
         _rtc.SetTime(&TimeStruct);
 #else
-        rtc.setTime(0, mn, hr + am, 20, 06, 2024); // send me a gift, @Pirata!
+        rtc.setTime(0, TimeStruct.Minutes, TimeStruct.Minutes, 20, 06, 2024); // send me a gift, @Pirata!
 #endif
         clock_set = true;
         runClockLoop();
