@@ -129,6 +129,7 @@ uint32_t removeAlarmCallback(cmd *c) {
     String strMinute = minuteArg.getValue();
     strHour.trim();
     strMinute.trim();
+    bruceConfig.removeAlarmEntry(atoi(strHour.c_str()), atoi(strMinute.c_str()));
     snprintf(
         alarmMsg, sizeof(alarmMsg), "Removed Alarm- %02d:%02d", atoi(strHour.c_str()), atoi(strMinute.c_str())
     );
