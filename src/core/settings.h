@@ -16,7 +16,7 @@ int gsetRotation(bool set = false);
 
 void setBrightnessMenu();
 
-void getTime(RTC_TimeTypeDef *time);
+void getTime(struct tm *time);
 
 void addAlarm();
 

@@ -1,5 +1,4 @@
 #include "settings.h"
-#include "../../lib/RTC/cplus_RTC.h"
 #include "core/led_control.h"
 #include "core/wifi/wifi_common.h"
 #include "display.h"
@@ -15,14 +14,14 @@
 #include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include <globals.h>
 
-void getTime(RTC_TimeTypeDef *time) {
+void getTime(struct tm *time) {
     options = {};
     for (int i = 0; i < 12; i++) {
         String tmp = String(i < 10 ? "0" : "") + String(i);
         options.push_back({tmp.c_str(), [&]() { delay(1); }});
     }
 
-    time->Hours = loopOptions(options, MENU_TYPE_SUBMENU, "Hour");
+    time->tm_hour = loopOptions(options, MENU_TYPE_SUBMENU, "Hour");
     options.clear();
 
     for (int i = 0; i < 60; i++) {
@@ -30,21 +29,21 @@ void getTime(RTC_TimeTypeDef *time) {
         options.push_back({tmp.c_str(), [&]() { delay(1); }});
     }
 
-    time->Minutes = loopOptions(options, MENU_TYPE_SUBMENU, "Minute");
+    time->tm_min = loopOptions(options, MENU_TYPE_SUBMENU, "Minute");
     options.clear();
 
     options = {
-        {"AM", [&]() {}                    },
-        {"PM", [&]() { time->Hours += 12; }},
+        {"AM", [&]() {}                      },
+        {"PM", [&]() { time->tm_hour += 12; }},
     };
 
     loopOptions(options);
 }
 
 void addAlarm() {
-    RTC_TimeTypeDef time;
+    struct tm time;
     getTime(&time);
-    bruceConfig.addAlarmEntry(time.Hours, time.Minutes);
+    bruceConfig.addAlarmEntry(time.tm_hour, time.tm_min);
 }
 
 void removeAlarmMenu(int hour, int minute) {
@@ -799,8 +798,9 @@ NTPClient timeClient(ntpUDP, ntpServer, selectedTimezone, daylightOffset_sec);
 void setClock() {
     bool auto_mode = true;
 
-    RTC_TimeTypeDef TimeStruct;
+    struct tm time;
 #if defined(HAS_RTC)
+    RTC_TimeTypeDef TimeStruct;
     _rtc.GetBm8563Time();
 #endif
 
@@ -900,13 +900,15 @@ void setClock() {
         clock_set = true;
         runClockLoop();
     } else {
-        getTime(&TimeStruct);
+        getTime(&time);
 
 #if defined(HAS_RTC)
+        TimeStruct.Hours = time.tm_hour;
+        TimeStruct.Minutes = time.tm_min;
         TimeStruct.Seconds = 0;
         _rtc.SetTime(&TimeStruct);
 #else
-        rtc.setTime(0, TimeStruct.Minutes, TimeStruct.Minutes, 20, 06, 2024); // send me a gift, @Pirata!
+        rtc.setTime(0, time.tm_min, time.tm_hour, 20, 06, 2024); // send me a gift, @Pirata!
 #endif
         clock_set = true;
         runClockLoop();
